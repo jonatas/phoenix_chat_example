@@ -4,7 +4,7 @@ use Mix.Config
 # you likely want to automate and keep it away from
 # your version control system.
 config :chat, Chat.Endpoint,
-  secret_key_base: "XR7e8rPXq2nIdBXqtPsyxPz1R1UF3w4HDBFGdxZ+9GDZCT6PpG4aJLpOzehOJVO5"
+  secret_key_base: "cavvo9VbEAUKgNcElI4D8tOx5uXA6AgcRftfmrMetSwwD7A8OsWFKzGHiMzGalSS"
 
 # Configure your database
 config :chat, Chat.Repo,
