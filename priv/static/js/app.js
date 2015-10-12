@@ -1314,9 +1314,7 @@ var App = (function () {
         var _this = this;
 
         var socket = new Socket("/socket", {
-          logger: function (kind, msg, data) {
-            console.log("" + kind + ": " + msg, data);
-          }
+          logger: function (kind, msg, data) {}
         });
 
         socket.connect({ user_id: "123" });
@@ -1324,6 +1322,66 @@ var App = (function () {
         var $messages = $("#messages");
         var $input = $("#message-input");
         var $username = $("#username");
+        var $canvasDiv = $("#canvasWrapper");
+        var $canvas = document.createElement("canvas");
+        var clickX = new Array();
+        var clickY = new Array();
+        var clickDrag = new Array();
+        var username = this.sanitize($username.val() || "anonymous");
+        var paint;
+
+        $canvas.setAttribute("width", "500px");
+        $canvas.setAttribute("height", "500px");
+        $canvas.setAttribute("id", "canvas");
+        $canvas.setAttribute("style", "border: 1px dotted black");
+        $("#canvas").css("cursor", "auto");
+        $canvasDiv.append($canvas);
+        if (typeof G_vmlCanvasManager != "undefined") {
+          $canvas = G_vmlCanvasManager.initElement(canvas);
+        }
+        var $context = $canvas.getContext("2d");
+        var paint = false;
+        function pauseEvent(e) {
+          if (e.stopPropagation) e.stopPropagation();
+          if (e.preventDefault) e.preventDefault();
+          e.cancelBubble = true;
+          e.returnValue = false;
+          return false;
+        }
+        $("#canvas").mousedown(function (e) {
+          paint = true;
+          var pointToDraw = {
+            username: username,
+            x: e.pageX - $("#canvas")[0].offsetLeft,
+            y: e.pageY - $("#canvas")[0].offsetTop - 50,
+            w: 10, c: "black"
+          };
+          console.log(pointToDraw);
+          whiteboard.push("draw", pointToDraw);
+          pauseEvent(e);
+        });
+        $("#canvas").mousemove(function (e) {
+          if (paint) {
+            var pointToDraw = {
+              username: username,
+              x: e.pageX - $("#canvas")[0].offsetLeft,
+              y: e.pageY - $("#canvas")[0].offsetTop - 50,
+              w: 10, c: "black"
+            };
+            whiteboard.push("draw", pointToDraw);
+          }
+          pauseEvent(e);
+        });
+        $("#canvas").mouseup(function (e) {
+          return paint = false;
+        });
+        $("#canvas").mouseleave(function (e) {
+          return paint = false;
+        });
+        $("body").mousemove(function (e) {
+          if (paint) return;
+          whiteboard.push("pointer", { username: username, x: e.pageX, y: event.pageY });
+        });
 
         socket.onOpen(function (ev) {
           return console.log("OPEN", ev);
@@ -1335,20 +1393,26 @@ var App = (function () {
           return console.log("CLOSE", e);
         });
 
-        var chan = socket.channel("rooms:lobby", {});
-        chan.join().receive("ignore", function () {
-          return console.log("auth error");
-        }).receive("ok", function () {
-          return console.log("join ok");
-        }).after(10000, function () {
-          return console.log("Connection interruption");
-        });
-        chan.onError(function (e) {
-          return console.log("something went wrong", e);
-        });
-        chan.onClose(function (e) {
-          return console.log("channel closed", e);
-        });
+        function newChannel(name) {
+          var chan = socket.channel(name, {});
+          chan.join().receive("ignore", function () {
+            return console.log("auth error");
+          }).receive("ok", function () {
+            return console.log("join ok");
+          }).after(10000, function () {
+            return console.log("Connection interruption");
+          });
+          chan.onError(function (e) {
+            return console.log("something went wrong", e);
+          });
+          chan.onClose(function (e) {
+            return console.log("channel closed", e);
+          });
+          return chan;
+        }
+
+        var chan = newChannel("rooms:lobby");
+        var whiteboard = newChannel("whiteboards:public");
 
         $input.off("keypress").on("keypress", function (e) {
           if (e.keyCode == 13) {
@@ -1357,13 +1421,37 @@ var App = (function () {
           }
         });
 
+        whiteboard.on("pointer", function (msg) {
+          username = _this.sanitize(msg.user || "anonymous");
+          var cssClass = "userpointer-" + username;
+          var div = $("body ." + cssClass);
+          if (div.length > 0) {
+            div[0].style.top = "" + msg.y + "px";
+            div[0].style.left = "" + msg.x + "px";
+          } else {
+            div = $("<div class='" + cssClass + "' style='position:absolute;left:" + msg.x + "px;top:" + msg.y + "px;width:" + (msg.w || 10) + "px;height:" + (msg.w || 10) + "px;background-color:black' />");
+            $("body").append(div);
+          }
+        });
+
+        $context.clearRect(0, 0, $context.canvas.width, $context.canvas.height); // Clears the canvas
+
+        whiteboard.on("draw", function (msg) {
+          username = _this.sanitize(msg.user || "anonymous");
+          $context.lineWidth = 5;
+          $context.fillStyle = msg.c || "#df4b26";
+          $context.rect(msg.x, msg.y, msg.w, msg.w);
+          $context.fill();
+        });
+
         chan.on("new:msg", function (msg) {
+          if (msg.body === "ping") return;
           $messages.append(_this.messageTemplate(msg));
           scrollTo(0, document.body.scrollHeight);
         });
 
         chan.on("user:entered", function (msg) {
-          var username = _this.sanitize(msg.user || "anonymous");
+          username = _this.sanitize(msg.user || "anonymous");
           $messages.append("<br/><i>[" + username + " entered]</i>");
         });
       }
@@ -1390,7 +1478,8 @@ $(function () {
   return App.init();
 });
 
-module.exports = App;});
+module.exports = App;
+/* console.log(`${kind}: ${msg}`, data)  */});
 
 ;
 //# sourceMappingURL=app.js.map
