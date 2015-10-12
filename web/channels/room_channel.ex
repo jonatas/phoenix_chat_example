@@ -21,7 +21,7 @@ defmodule Chat.RoomChannel do
   end
 
   def join("rooms:" <> _private_subtopic, _message, _socket) do
-    {:error, %{reason: "unauthorized"}}
+    {:error, %{reason: "unauthorized room"}}
   end
 
   def handle_info({:after_join, msg}, socket) do
