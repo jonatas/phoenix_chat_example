@@ -1,21 +1,23 @@
 
-<div class="container unselectable">
+<div class="unselectable">
   <div class="row">
     <div class='col-sm-8' id="canvasWrapper"></div>
-    <div class='col-sm-4' id="messages" ></div>
+    <div class='col-sm-4 scrollable' id="messages" ></div>
   </div>
 </div>
 <div id="footer">
   <div class="container">
     <div class="row">
-      <div class="col-sm-2">
+      <div class="col-sm-12">
         <div class="input-group">
           <span class="input-group-addon">@</span>
           <input id="username" type="text" class="form-control" placeholder="username">
         </div>
       </div>
-      <div class="col-sm-10">
-        <input id="message-input" class="form-control" />
+    </div>
+    <div class="row">
+      <div class="col-sm-12">
+        <input id="message-input" class="form-control" placeholder="type your message here :)" />
       </div>
     </div>
   </div>

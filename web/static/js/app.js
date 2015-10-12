@@ -43,7 +43,7 @@ class App {
       var pointToDraw = {
           username: username,
           x: e.pageX - $('#canvas')[0].offsetLeft,
-          y: e.pageY - $('#canvas')[0].offsetTop - 50,
+          y: e.pageY - $('#canvas')[0].offsetTop,
           w: 10, c: 'black'
       }
       console.log(pointToDraw)
@@ -55,7 +55,7 @@ class App {
           var pointToDraw = {
               username: username,
               x: e.pageX - $('#canvas')[0].offsetLeft,
-              y:  e.pageY - $('#canvas')[0].offsetTop - 50,
+              y:  e.pageY - $('#canvas')[0].offsetTop,
               w: 10, c: 'black'
           }
           whiteboard.push("draw", pointToDraw)
